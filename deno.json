@@ -1,0 +1,16 @@
+{
+  "tasks": {
+    "check": "deno fmt --check && deno lint && deno check src/cli.ts scripts/*.ts && deno test && deno task validate",
+    "validate": "deno run --allow-read --allow-run=git,plutil scripts/validate.ts",
+    "build": "deno run --allow-read --allow-write=dist --allow-run=deno,plutil scripts/build.ts",
+    "package": "deno run --allow-read --allow-write=dist,build --allow-run=plutil,zip,unzip,file scripts/package.ts",
+    "smoke": "deno run --allow-read --allow-write=build --allow-run --allow-env=PATH scripts/smoke.ts",
+    "import-alfred": "deno run --allow-read --allow-write=alfred,build --allow-run=plutil,unzip scripts/import-alfred-export.ts"
+  },
+  "fmt": { "exclude": [".context/", "build/", "dist/"] },
+  "lint": {
+    "exclude": [".context/", "build/", "dist/", "alfred/notification.js"]
+  },
+  "compilerOptions": { "strict": true },
+  "lock": { "path": "deno.lock", "frozen": true }
+}

@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.5
+      - name: Format, lint, type check, unit tests and metadata validation
+        run: deno task check
+      - name: Build Apple Silicon executable
+        run: deno task build
+      - name: Package workflow
+        run: deno task package
+      - name: Test packaged executable and Alfred adapter
+        run: deno task smoke
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trello-inbox
+          path: |
+            dist/Trello-Inbox.alfredworkflow
+            dist/checksums.txt
+          if-no-files-found: error

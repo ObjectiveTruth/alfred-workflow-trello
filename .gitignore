@@ -1,0 +1,14 @@
+.context/
+**/prefs.plist
+.env
+.env.*
+!.env.example
+dist/
+build/
+alfred/bin/*
+!alfred/bin/.gitkeep
+.DS_Store
+*.alfredworkflow
+*.pem
+*.p12
+*.key
