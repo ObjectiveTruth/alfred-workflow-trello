@@ -2,6 +2,7 @@ import { readConfig, type ReadEnv } from "./config.ts";
 import { InboxError, safeError } from "./errors.ts";
 import { createCard, type Fetch } from "./trello.ts";
 import type { Result } from "./types.ts";
+import { loadSearchIndex } from "./search.ts";
 
 interface Dependencies {
   env?: ReadEnv;
@@ -18,13 +19,20 @@ export async function run(
   const stderr = deps.stderr ?? console.error;
   const json = args.at(-1) === "--json";
   if (args.length === 1 && ["--help", "-h"].includes(args[0])) {
-    stdout('Usage: trello-inbox add "Card title" [--json]');
+    stdout(
+      'Usage: trello-inbox add "Card title" [--json]\n       trello-inbox index --json',
+    );
     return 0;
   }
   let result: Result;
   let exitCode = 0;
   try {
     const positional = json ? args.slice(0, -1) : args;
+    if (positional.length === 1 && positional[0] === "index" && json) {
+      const index = await loadSearchIndex(readConfig(deps.env), deps.fetcher);
+      stdout(JSON.stringify({ success: true, index }));
+      return 0;
+    }
     if (positional.length !== 2 || positional[0] !== "add") {
       throw new InboxError(
         "INVALID_INPUT",

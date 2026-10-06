@@ -59,23 +59,49 @@
 		<dict>
 			<key>config</key>
 			<dict>
-				<key>argumenttype</key>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>argumenttreatemptyqueryasnil</key>
+				<false/>
+				<key>argumenttrimmode</key>
 				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>102</integer>
 				<key>keyword</key>
 				<string>{var:capture_keyword}</string>
+				<key>queuedelaycustom</key>
+				<integer>1</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string>Capture or find a card…</string>
+				<key>script</key>
+				<string>./filter.sh "$1"</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
 				<key>subtext</key>
-				<string>Create a card in your configured list</string>
-				<key>text</key>
-				<string>Add to Trello Inbox</string>
+				<string>Enter creates · select a match to open it</string>
+				<key>title</key>
+				<string>Capture or find a Trello card</string>
+				<key>type</key>
+				<integer>0</integer>
 				<key>withspace</key>
 				<true/>
 			</dict>
 			<key>type</key>
-			<string>alfred.workflow.input.keyword</string>
+			<string>alfred.workflow.input.scriptfilter</string>
 			<key>uid</key>
 			<string>7723C3C2-79BB-54B7-87FA-27E0F119D758</string>
 			<key>version</key>
-			<integer>1</integer>
+			<integer>3</integer>
 		</dict>
 		<dict>
 			<key>config</key>
@@ -85,7 +111,7 @@
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>./capture.sh "$1"</string>
+				<string>./action.sh "$1" "$2"</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -195,7 +221,7 @@
 
 Requires Apple Silicon macOS and Alfred 5 with Powerpack. Enter your Trello API key, token and inbox list ID below.
 
-Use `tin Buy more packaging material` to capture a card. Use `tin-update` to check GitHub Releases. Failed captures copy your text to the clipboard.
+Use `tin Buy more packaging material` to capture a card. Create is always first; select a matching card below to open it in Trello. Matches show their list name and come from the same board as your Inbox. Search needs token read access and stores card titles, links and list names locally in Alfred’s cache. Use `tin-update` to check GitHub Releases. Failed captures copy your text to the clipboard.
 
 No Node.js, npm or Deno installation is needed. Credentials are stored locally in Alfred preferences.
 
@@ -274,7 +300,7 @@ See the repository README for configuration help.</string>
 				<true/>
 			</dict>
 			<key>description</key>
-			<string>Generate a token for that key with write access. Stored locally by Alfred.</string>
+			<string>Click Token on the Trello Auth page; authorize read and write access. Use the user token, not the application Secret.</string>
 			<key>label</key>
 			<string>Trello API Token</string>
 			<key>type</key>
@@ -333,7 +359,7 @@ See the repository README for configuration help.</string>
 		<string>ObjectiveTruth/alfred-workflow-trello</string>
 	</dict>
 	<key>version</key>
-	<string>0.1.0</string>
+	<string>0.2.0</string>
 	<key>webaddress</key>
 	<string>https://github.com/ObjectiveTruth/alfred-workflow-trello</string>
 </dict>

@@ -9,7 +9,13 @@
   },
   "fmt": { "exclude": [".context/", "build/", "dist/"] },
   "lint": {
-    "exclude": [".context/", "build/", "dist/", "alfred/notification.js"]
+    "exclude": [
+      ".context/",
+      "build/",
+      "dist/",
+      "alfred/notification.js",
+      "alfred/filter.js"
+    ]
   },
   "compilerOptions": { "strict": true },
   "lock": { "path": "deno.lock", "frozen": true }

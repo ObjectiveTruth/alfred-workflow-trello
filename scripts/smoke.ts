@@ -1,5 +1,6 @@
 import { ASSET, command, readWorkflow, validateWorkflow } from "./common.ts";
 import { assert, equal } from "../tests/helpers.ts";
+import { smokeFilter } from "./smoke-filter.ts";
 
 const root = Deno.cwd();
 await Deno.mkdir("build", { recursive: true });
@@ -18,6 +19,7 @@ try {
     `${stage}/workflow`,
   ]);
   validateWorkflow(await readWorkflow(`${stage}/workflow/info.plist`));
+  await smokeFilter(`${stage}/workflow`, stage);
   const binary = `${stage}/workflow/bin/trello-inbox`;
   const help = await new Deno.Command(binary, {
     args: ["--help"],

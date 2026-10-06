@@ -3,8 +3,9 @@
 [![Release](https://github.com/ObjectiveTruth/alfred-workflow-trello/actions/workflows/release.yml/badge.svg)](https://github.com/ObjectiveTruth/alfred-workflow-trello/actions/workflows/release.yml)
 
 Fast capture from Alfred into one Trello list. Type
-`tin Buy more packaging material` and press Enter. Alfred captures; Trello is
-where you triage and organize.
+`tin Buy more packaging material` and press Enter. Matching cards appear below
+Create; select one to open it in your browser. Trello is where you triage and
+organize.
 
 **No npm, Node.js, or Deno installation is required to use the released Alfred
 workflow. Deno is only used to build the standalone executable included in the
@@ -36,8 +37,11 @@ release-hardening task.
 
 Follow Trello's
 [API introduction](https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/)
-to create a Power-Up/API key and generate a token for that key. The token needs
-write access, and its account must have access to your chosen list.
+to create a Power-Up/API key and generate a token for that key. Click the
+**Token** link on its Trello Auth page and authorize **read and write** access.
+The user token is different from the application's **Secret**; this workflow
+does not use that Secret. Its account must have access to your chosen list and
+board.
 
 | Alfred field     | CLI environment variable | Value                             |
 | ---------------- | ------------------------ | --------------------------------- |
@@ -55,6 +59,40 @@ ID.
 Configure once. Each capture goes directly to that list without opening Trello
 or asking which board to use. Configuration defaults in this repository are
 blank.
+
+## Capture and find
+
+```text
+tin call RBC
+
+  Create “call RBC”
+  Add to Inbox
+
+  Call RBC about business account requirements
+  Next · Open in Trello
+```
+
+Create is always first, even for an exact match. **Enter** creates your text in
+the configured list; **Down, Enter** opens an existing card. The capture
+subtitle uses your configured list's actual name once loaded. Matches show their
+list name only, with no project metadata. Bare `tin` prompts for text and cannot
+create a blank card.
+
+Search covers non-archived cards in non-archived lists on the **same board as
+your Inbox**. It matches title words in any order, ignores case/accents, ranks
+exact titles and phrases first, and returns up to five matches. It does not
+search other boards or modify existing cards.
+
+The adapter refreshes a local index in the background, at most once per minute.
+Create never waits for the network. On first use matches appear when loading
+finishes. Once results are displayed they stay fixed until you change the query
+or start a new Alfred session, preventing selection from shifting under your
+cursor. A successful capture invalidates the index for the next search.
+
+Search failures display **Search unavailable** or **Search could not refresh**
+with saved results; they are never presented as a successful empty search. A
+token without read permission may still create cards but cannot search them.
+Search and capture failures are handled independently.
 
 ## Updates
 
@@ -94,6 +132,7 @@ environment variables using your preferred local secret management:
 ```sh
 ./dist/trello-inbox add "Buy cardboard"
 ./dist/trello-inbox add "Buy cardboard" --json
+./dist/trello-inbox index --json
 ```
 
 Quote the entire title as one argument. JSON results go to stdout, including
@@ -126,10 +165,12 @@ from Alfred into this repository.
 configuration and HTTP dependencies. Authentication is a header-provider
 boundary. The core does not know about Alfred.
 
-`alfred/` is the frontend: keyword → shell adapter → bundled executable → JXA
-notification formatting → Alfred notification. It uses relative paths and macOS
-system tools. `update.sh` is an independent, pinned GitHub updater; provenance,
-license and review notes are in [UPDATER.md](alfred/UPDATER.md).
+`alfred/` is the frontend: Script Filter → create/open action. Its JXA renderer
+searches a local index while a separate shell worker calls the CLI's read-only
+index command. Capture invokes the CLI and formats a confirmed notification;
+opening invokes the system browser. It uses relative paths and macOS system
+tools. `update.sh` is an independent, pinned GitHub updater; provenance, license
+and review notes are in [UPDATER.md](alfred/UPDATER.md).
 
 `scripts/` validates metadata and obvious accidental secrets, compiles only
 `aarch64-apple-darwin`, and packages an explicit allowlist. Importing an export
@@ -181,6 +222,12 @@ and never included in diagnostic messages. The executable contains no personal
 IDs or secrets. Alfred stores the configured values locally; Keychain
 integration is not implemented. Failed capture text replaces the clipboard for
 recovery.
+
+The search adapter stores card titles, card URLs and list names in Alfred's
+local workflow cache with owner-only permissions. It keeps no descriptions,
+attachments or credentials there. Configuration changes use a separate cache
+namespace. The standalone executable still has no filesystem or subprocess
+permissions; cache management belongs to the macOS adapter.
 
 Packages exclude `prefs.plist`, `.env*`, source files and signing material by
 construction. CI checks are useful guardrails, not a substitute for reviewing a

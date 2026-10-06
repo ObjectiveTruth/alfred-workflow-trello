@@ -23,7 +23,16 @@ try {
     await Deno.copyFile(`alfred/${name}`, `${stage}/${name}`);
   }
   await Deno.copyFile("dist/trello-inbox", `${stage}/bin/trello-inbox`);
-  for (const file of ["capture.sh", "update.sh", "bin/trello-inbox"]) {
+  for (
+    const file of [
+      "capture.sh",
+      "action.sh",
+      "filter.sh",
+      "refresh.sh",
+      "update.sh",
+      "bin/trello-inbox",
+    ]
+  ) {
     await Deno.chmod(`${stage}/${file}`, 0o755);
   }
   const output = `${Deno.cwd()}/dist/${ASSET}`;
