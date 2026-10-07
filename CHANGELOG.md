@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Bare `tin` (or your custom keyword) and Enter opens your Inbox’s Trello board
+  in the browser. Whitespace-only input also opens the board.
+- Cache the board address with search data, with loading and unavailable states
+  on first use. Capture and card search keep their existing behavior.
+
 ## 0.2.0
 
 - `tin <text>` shows Create first, followed by matching cards on the Inbox's

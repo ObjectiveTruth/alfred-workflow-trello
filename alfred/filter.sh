@@ -4,7 +4,8 @@ umask 077
 cache_root="${alfred_workflow_cache:-${TMPDIR:-/tmp}/ca.miguelmendez.alfred.trello-inbox}"
 # Separate users/configurations without exposing their values in file names.
 fingerprint=$(printf '%s\0' "$TRELLO_API_KEY" "$TRELLO_API_TOKEN" "$TRELLO_LIST_ID" | /usr/bin/shasum -a 256)
-cache="$cache_root/search-${fingerprint%% *}"
+# v2 includes the board URL; refresh immediately when upgrading older caches.
+cache="$cache_root/search-v2-${fingerprint%% *}"
 mkdir -p "$cache"
 now=$(date +%s)
 last=$(/usr/bin/stat -f %m "$cache/attempt" 2>/dev/null || printf 0)

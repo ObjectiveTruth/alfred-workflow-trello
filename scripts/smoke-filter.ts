@@ -19,6 +19,15 @@ export async function smokeFilter(
   }
   const empty = await filter("");
   equal(empty.items[0].valid, false);
+  equal(empty.items[0].title, "Loading Trello board…");
+  equal(empty.rerun, 0.2);
+  const boardTimeout = await filter("", {
+    tin_query: "",
+    tin_started: String(Date.now() - 15000),
+  });
+  equal(boardTimeout.items[0].title, "Trello board unavailable");
+  equal(boardTimeout.items[0].arg, undefined);
+  equal(boardTimeout.rerun, undefined);
   const cold = await filter(query);
   equal(cold.items.length, 1);
   equal(cold.items[0].arg, ["create", query]);
@@ -33,6 +42,10 @@ export async function smokeFilter(
   const fixture = {
     success: true,
     index: {
+      board: {
+        name: "My board",
+        url: "https://trello.com/b/board123/my-board",
+      },
       inbox: { id: "fixture", name: "My Inbox" },
       cards: [
         {
@@ -63,6 +76,15 @@ export async function smokeFilter(
     },
   };
   await Deno.writeTextFile(`${cache}/index.json`, JSON.stringify(fixture));
+  for (const blank of ["", "   \t\n"]) {
+    const ready = await filter(blank, empty.variables);
+    equal(ready.items.length, 1);
+    equal(ready.items[0].title, "Open Trello board");
+    equal(ready.items[0].subtitle, "My board · Open in Trello");
+    equal(ready.items[0].valid, true);
+    equal(ready.items[0].arg, ["open", fixture.index.board.url]);
+    equal(ready.rerun, undefined);
+  }
   const found = await filter("call rbc");
   equal(found.skipknowledge, true);
   equal(found.items[0].arg, ["create", "call rbc"]);
@@ -89,7 +111,17 @@ export async function smokeFilter(
   );
   const stale = await filter("call rbc");
   equal(stale.items.at(-1).title, "Search could not refresh");
+  const staleBoard = await filter("");
+  equal(staleBoard.items[0].arg, ["open", fixture.index.board.url]);
+  equal(staleBoard.items[0].valid, true);
+  fixture.index.board.url = "https://example.com/b/unsafe";
+  await Deno.writeTextFile(`${cache}/index.json`, JSON.stringify(fixture));
+  equal((await filter("")).items[0].valid, false);
   await Deno.remove(`${cache}/index.json`);
+  const failedBoard = await filter("");
+  equal(failedBoard.items[0].title, "Trello board unavailable");
+  equal(failedBoard.items[0].valid, false);
+  equal(failedBoard.rerun, undefined);
   const failed = await filter(query);
   equal(failed.items[0].arg, ["create", query]);
   equal(failed.items[1].title, "Search unavailable");

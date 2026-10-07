@@ -3,6 +3,7 @@ import { type Fetch, keyTokenAuthorization } from "./trello.ts";
 import type { Card, Config } from "./types.ts";
 
 export interface SearchIndex {
+  board: { name: string; url: string };
   inbox: { id: string; name: string };
   cards: (Card & { listName: string })[];
 }
@@ -67,10 +68,16 @@ export async function loadSearchIndex(
     !record(inbox) || typeof inbox.name !== "string" ||
     typeof inbox.idBoard !== "string" || !/^[a-f0-9]{24}$/i.test(inbox.idBoard)
   ) malformed();
-  const [lists, cards] = await Promise.all([
+  const [board, lists, cards] = await Promise.all([
+    get(`boards/${inbox.idBoard}?fields=name,url`),
     get(`boards/${inbox.idBoard}/lists/open?fields=name`),
     get(`boards/${inbox.idBoard}/cards/open?fields=name,idList,url`),
   ]);
+  if (
+    !record(board) || typeof board.name !== "string" ||
+    typeof board.url !== "string" ||
+    !/^https:\/\/trello\.com\/b\/[^\s]+$/.test(board.url)
+  ) malformed();
   if (!Array.isArray(lists) || !Array.isArray(cards)) malformed();
   const names = new Map<string, string>();
   for (const list of lists) {
@@ -81,6 +88,7 @@ export async function loadSearchIndex(
     names.set(list.id, list.name);
   }
   const result: SearchIndex = {
+    board: { name: board.name, url: board.url },
     inbox: { id: config.listId, name: inbox.name },
     cards: [],
   };

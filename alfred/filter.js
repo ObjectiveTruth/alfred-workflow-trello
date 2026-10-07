@@ -57,16 +57,43 @@ function matches(cards, query) {
 function run(argv) {
   var query = argv[0] || "";
   var cache = argv[1];
+  var data = readJSON(cache + "/index.json");
+  var error = readJSON(cache + "/error.json");
+  var index = data && data.success && data.index;
+  var now = Date.now();
+  var started = env("tin_query") === query
+    ? Number(env("tin_started")) || now
+    : now;
   if (!query.trim()) {
-    return JSON.stringify({
+    var board = index && index.board;
+    var hasBoard = board && typeof board.url === "string" &&
+      /^https:\/\/trello\.com\/b\/[^\s]+$/.test(board.url);
+    var loading = !hasBoard && !error && now - started < 12000;
+    var boardOutput = {
       skipknowledge: true,
       items: [{
-        uid: "tin-empty",
-        title: "Type to capture or find a card",
-        subtitle: "Enter creates · select an existing card to open it",
-        valid: false,
+        uid: "tin-board",
+        title: hasBoard
+          ? "Open Trello board"
+          : loading
+          ? "Loading Trello board…"
+          : "Trello board unavailable",
+        subtitle: hasBoard
+          ? board.name + " · Open in Trello"
+          : loading
+          ? "Finding the board for your Inbox"
+          : "Check your connection and workflow configuration, then try again.",
+        valid: !!hasBoard,
+        arg: hasBoard ? ["open", board.url] : undefined,
       }],
-    });
+      variables: {
+        tin_query: query,
+        tin_rows: "",
+        tin_started: loading ? String(started) : "",
+      },
+    };
+    if (loading) boardOutput.rerun = 0.2;
+    return JSON.stringify(boardOutput);
   }
   // Once matches are visible, freeze this query's results for the session.
   // Typing a changed query takes a fresh snapshot; selecting with arrows does not.
@@ -78,9 +105,6 @@ function run(argv) {
       });
     } catch (_) { /* Rebuild an invalid session. */ }
   }
-  var data = readJSON(cache + "/index.json");
-  var error = readJSON(cache + "/error.json");
-  var index = data && data.success && data.index;
   var hasIndex = index && index.inbox && Array.isArray(index.cards);
   var items = [{
     uid: "tin-create",
@@ -115,10 +139,6 @@ function run(argv) {
       valid: false,
     });
   }
-  var now = Date.now();
-  var started = env("tin_query") === query
-    ? Number(env("tin_started")) || now
-    : now;
   if (!hasIndex && !error && now - started < 12000) {
     // Only the Create row exists while loading, so adding results cannot replace
     // an existing selected card. Keep its stable UID across reruns.

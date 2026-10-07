@@ -39,9 +39,9 @@ tin call RBC
 
 These are illustrative titles and list names, not configuration defaults.
 
-1. **Create is always the first result.** Pressing Enter creates exactly the
-   supplied title in the configured Inbox list. An exact existing match must not
-   change the meaning of Enter.
+1. **For nonblank input, Create is always the first result.** Pressing Enter
+   creates exactly the supplied title in the configured Inbox list. An exact
+   existing match must not change the meaning of Enter.
 2. **Existing matches appear below Create.** Down, then Enter opens the selected
    card in the browser. It does not modify, append to, or categorize that card.
 3. **A match's subtitle is only `<list name> · Open in Trello`.** The user
@@ -56,7 +56,9 @@ These are illustrative titles and list names, not configuration defaults.
 6. **Distinguish search failure from no matches.** Show an
    unavailable/stale-search message when appropriate. Never imply a failed
    search proved no card exists.
-7. **Blank input cannot create a card.** Bare `tin` prompts for text.
+7. **Blank input cannot create a card.** Bare `tin` (or the configured keyword)
+   and Enter opens the Inbox’s board in the browser. Whitespace-only input does
+   the same; show loading/unavailable states when the board URL is not cached.
 8. **Only confirmed creation is success.** Preserve nonzero error exits and
    useful notifications. Failed captures copy the original text to the
    clipboard. Do not blindly retry a POST: a lost response can follow a
@@ -102,10 +104,10 @@ relative workflow paths. There are currently no third-party Deno/npm imports.
 The compiled executable is restricted to `api.trello.com` and the three Trello
 environment variables, with no filesystem or subprocess permission. Keep Alfred
 cache permissions in the adapter rather than broadening the core's permissions.
-The cache contains card titles, links and list names, not credentials or full
-card contents. Successful refreshes are normally throttled to 60 seconds;
-failures can retry after 15 seconds. A successful capture invalidates the search
-index.
+The cache contains card titles, links, list names and the board name/URL, not
+credentials or full card contents. Successful refreshes are normally throttled
+to 60 seconds; failures can retry after 15 seconds. A successful capture
+invalidates the search index.
 
 ## Configuration and secrets
 
@@ -239,6 +241,9 @@ recovery.
   checks at that point). Live read-only search found the expected card, and the
   local update kept preferences unchanged. The user subsequently tested the
   interaction in Alfred and reported that it worked perfectly.
+- **0.3.0 — board shortcut.** The user requested bare `tin` (their custom
+  keyword is `trello`) plus Enter to open the Inbox’s board. Cache its name and
+  URL with the search index; keep capture/search unchanged for nonblank text.
 - **This file** records the agreed intent and working development flow so future
   agents do not have to reconstruct them from chat attachments.
 

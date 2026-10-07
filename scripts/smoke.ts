@@ -18,7 +18,16 @@ try {
     "-d",
     `${stage}/workflow`,
   ]);
-  validateWorkflow(await readWorkflow(`${stage}/workflow/info.plist`));
+  const metadata = await readWorkflow(`${stage}/workflow/info.plist`);
+  validateWorkflow(metadata);
+  const objects = metadata.objects as {
+    config: { keyword?: string; argumenttype?: number };
+  }[];
+  equal(
+    objects.find((object) => object.config.keyword === "{var:capture_keyword}")
+      ?.config.argumenttype,
+    1, // Optional argument: bare keyword must execute the Script Filter.
+  );
   await smokeFilter(`${stage}/workflow`, stage);
   const binary = `${stage}/workflow/bin/trello-inbox`;
   const help = await new Deno.Command(binary, {

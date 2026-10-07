@@ -6,6 +6,10 @@ import { assert, card, env, equal, listId } from "./helpers.ts";
 
 const boardId = "b".repeat(24);
 const nextId = "c".repeat(24);
+const board = {
+  name: "My board",
+  url: "https://trello.com/b/board123/my-board",
+};
 const inbox = { name: "Inbox", idBoard: boardId };
 const lists = [{ id: listId, name: "Inbox" }, { id: nextId, name: "Next" }];
 const cards = [{ ...card, idList: nextId }];
@@ -25,6 +29,8 @@ Deno.test("index discovers the inbox board, joins list names, omits archived lis
       Response.json(
         urls.length === 1
           ? inbox
+          : String(url).includes("?fields=name,url")
+          ? board
           : String(url).includes("/lists/")
           ? lists
           : [...cards, { ...card, idList: "archived" }],
@@ -32,11 +38,13 @@ Deno.test("index discovers the inbox board, joins list names, omits archived lis
     );
   });
   equal(result, {
+    board,
     inbox: { id: listId, name: "Inbox" },
     cards: [{ ...card, listName: "Next" }],
   });
   equal(urls, [
     `https://api.trello.com/1/lists/${listId}?fields=name,idBoard`,
+    `https://api.trello.com/1/boards/${boardId}?fields=name,url`,
     `https://api.trello.com/1/boards/${boardId}/lists/open?fields=name`,
     `https://api.trello.com/1/boards/${boardId}/cards/open?fields=name,idList,url`,
   ]);
@@ -74,8 +82,8 @@ for (
   });
 }
 
-Deno.test("index rejects non-Trello card URLs and malformed list data", async () => {
-  for (const invalid of ["url", "lists"]) {
+Deno.test("index rejects non-Trello card/board URLs and malformed list data", async () => {
+  for (const invalid of ["url", "lists", "board"]) {
     try {
       await loadSearchIndex(
         readConfig(env),
@@ -83,9 +91,17 @@ Deno.test("index rejects non-Trello card URLs and malformed list data", async ()
           Promise.resolve(Response.json(
             String(url).includes(`/lists/${listId}`)
               ? inbox
+              : String(url).includes("?fields=name,url")
+              ? invalid === "board"
+                ? { ...board, url: "https://example.com/b/unsafe" }
+                : board
               : String(url).includes("/lists/open")
               ? invalid === "lists" ? [{}] : lists
-              : [{ ...card, idList: nextId, url: "https://example.com" }],
+              : [{
+                ...card,
+                idList: nextId,
+                url: invalid === "url" ? "https://example.com" : card.url,
+              }],
           )),
       );
       throw new Error("Expected failure");
@@ -116,6 +132,8 @@ Deno.test("index network failure is safe and CLI success is structured", async (
         Promise.resolve(Response.json(
           String(url).includes(`/lists/${listId}`)
             ? inbox
+            : String(url).includes("?fields=name,url")
+            ? board
             : String(url).includes("/lists/open")
             ? lists
             : cards,

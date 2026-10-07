@@ -75,8 +75,11 @@ tin call RBC
 Create is always first, even for an exact match. **Enter** creates your text in
 the configured list; **Down, Enter** opens an existing card. The capture
 subtitle uses your configured list's actual name once loaded. Matches show their
-list name only, with no project metadata. Bare `tin` prompts for text and cannot
-create a blank card.
+list name only, with no project metadata. **Bare `tin`, Enter** opens the board
+containing your Inbox in your browser. This also works with your custom keyword
+(for example, `trello`). Blank or whitespace-only input never creates a card.
+The board address loads on first use and is cached for subsequent visits; if it
+cannot load, the workflow shows an unavailable message.
 
 Search covers non-archived cards in non-archived lists on the **same board as
 your Inbox**. It matches title words in any order, ignores case/accents, ranks
@@ -223,11 +226,11 @@ IDs or secrets. Alfred stores the configured values locally; Keychain
 integration is not implemented. Failed capture text replaces the clipboard for
 recovery.
 
-The search adapter stores card titles, card URLs and list names in Alfred's
-local workflow cache with owner-only permissions. It keeps no descriptions,
-attachments or credentials there. Configuration changes use a separate cache
-namespace. The standalone executable still has no filesystem or subprocess
-permissions; cache management belongs to the macOS adapter.
+The search adapter stores card titles, card URLs, list names and the board name
+and URL in Alfred's local workflow cache with owner-only permissions. It keeps
+no descriptions, attachments or credentials there. Configuration changes use a
+separate cache namespace. The standalone executable still has no filesystem or
+subprocess permissions; cache management belongs to the macOS adapter.
 
 Packages exclude `prefs.plist`, `.env*`, source files and signing material by
 construction. CI checks are useful guardrails, not a substitute for reviewing a
